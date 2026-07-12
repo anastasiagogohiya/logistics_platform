@@ -1,0 +1,216 @@
+# Запуск Пострег для разработки
+services:
+  postgres:
+    image: postgres:15
+    container_name: logistics_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - logistics_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: logistics_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - logistics_network
+    restart: unless-stopped
+
+  # Фронтэнд React+Vite
+  frontend:
+    image: node:22-alpine  # или node:22-bookworm-slim
+    container_name: logistics_frontend
+    command: sh -c "npm install && npx vite --host"
+    ports:
+      - "5173:5173"
+    #  - "24678:24678"
+    volumes:
+      - ./services/frontend:/app
+      - frontend_nodemodules:/app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_API_URL: ""
+    working_dir: /app
+    networks:
+      - logistics_network
+    depends_on:
+      - fastapi
+    restart: unless-stopped
+
+  # ==========================================
+  # REACT ADMIN (административная панель)
+  # ==========================================
+  react-admin:
+    image: node:22-alpine
+    container_name: logistics_react_admin
+    command: sh -c "npm install && npx vite --host"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./services/react-admin:/app
+      - react_admin_nodemodules:/app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_API_URL: "http://localhost:8001/api"   # обращение к Django внутри сети
+    working_dir: /app
+    networks:
+      - logistics_network
+    depends_on:
+      - django
+    restart: unless-stopped
+
+
+  # ==========================================
+  # REDIS CACHE (для кэширования)
+  # ==========================================
+  redis-cache:
+    build:
+      context: ./infra/redis/cache
+    container_name: logistics_redis_cache
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_cache_data:/data
+      - ./infra/redis/cache/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - logistics_network
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # REDIS STORAGE (для сессий и чатов)
+  # ==========================================
+  redis-storage:
+    image: redis/redis-stack:latest
+    container_name: logistics_redis_storage
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_storage_data:/data
+    networks:
+      - logistics_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Для просмотра данных хранимых Редисом storage + cache
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: logistics_redis_commander
+    environment:
+      - REDIS_HOSTS=cache:redis-cache:6379,storage:redis-storage:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - logistics_network
+    restart: unless-stopped
+
+  # Сервис Fastapi агент (внешний api)
+  fastapi:
+    build:
+      context: .
+      dockerfile: services/fastapi_agent/Dockerfile
+    container_name: logistics_fastapi
+    command: ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/fastapi_agent:/app
+      - ./infra/logging:/app/infra/logging
+    environment:
+      - DJANGO_API_URL=http://django:8001  # URL для обращения к сервису Django
+      - DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}"
+      - REDIS_CACHE_URL=redis://redis-cache:6379/0
+      - REDIS_STORAGE_URL=redis://redis-storage:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - django
+      - redis-cache
+      - redis-storage
+    networks:
+      - logistics_network
+    restart: unless-stopped
+
+  # Сервис Django (внутренний api)
+  django:
+    build:
+      context: .
+      dockerfile: services/django_core/Dockerfile
+    container_name: logistics_django
+    command: ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8001"] # автоматический перезапуск приложения по умолчанию
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./services/django_core/src:/app/src
+      - ./infra/logging:/app/infra/logging
+    entrypoint: ["/entrypoint.sh"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,fastapi,django
+      DJANGO_SETTINGS_MODULE: config.settings
+      SERVICE: django
+      ALLOWED_HOSTS: localhost,127.0.0.1,fastapi,django
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      REDIS_STORAGE_URL: redis://redis-storage:6379/0
+
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      redis-storage:
+        condition: service_healthy
+    networks:
+      - logistics_network
+    restart: unless-stopped
+
+
+# Томы и сети
+volumes:
+  postgres_data:
+  frontend_nodemodules:
+  elasticsearch_data:
+  redis_cache_data:
+  redis_storage_data:
+  react_admin_nodemodules:
+
+networks: # виртуальная сеть между всеми контами
+  logistics_network:
+    driver: bridge

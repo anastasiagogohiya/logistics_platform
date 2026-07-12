@@ -1,0 +1,31 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.5
+    hooks:
+      - id: ruff
+        name: Ruff (FastAPI)
+        files: ^services/fastapi_agent/src/
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff
+        name: Ruff (Django)
+        files: ^services/django_core/src/
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        name: Ruff Format (FastAPI)
+        files: ^services/fastapi_agent/src/
+      - id: ruff-format
+        name: Ruff Format (Django)
+        files: ^services/django_core/src/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        name: MyPy (FastAPI)
+        files: ^services/fastapi_agent/src/
+        additional_dependencies: [pydantic, httpx, redis]
+      - id: mypy
+        name: MyPy (Django)
+        files: ^services/django_core/src/
+        additional_dependencies: [pydantic, httpx, redis]

@@ -1,0 +1,29 @@
+/* Стили, специфичные для компонента LogisticsChat */
+
+.bg-chat {
+  background-image: url('./assets/fone.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bg-chat-light {
+  background-image: url('./assets/fone.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.bg-chat-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.3); /* 0.3 – осветление, регулируйте */
+  z-index: 0;
+}
+
+.bg-chat-light > * {
+  position: relative;
+  z-index: 1;
+}
