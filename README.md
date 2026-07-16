@@ -3,27 +3,29 @@
 </p>
 
 <h1 align="center" style="color: #3776AB; margin-top: 0px;">🚚 Logistics Platform</h1>
-<p align="center" style="font-size: 16px; color: #666; margin-bottom: 20px;">
+
+<p align="center" style="font-size: 20px; font-weight: 500; color: #2c3e50; margin-bottom: 10px;">
   Платформа для управления логистикой с AI-ассистентом
 </p>
 
+
 <p align="center">
-[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=F9DC24)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=FFD43B)](https://www.djangoproject.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![Elasticsearch](https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white)](https://www.elastic.co/elasticsearch/)
-[![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React Admin](https://img.shields.io/badge/React_Admin-222222?style=for-the-badge&logo=react&logoColor=61DAFB)](https://marmelab.com/react-admin/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://docs.github.com/ru/actions)
-[![Ruff](https://img.shields.io/badge/Ruff-000000?style=for-the-badge&logo=ruff&logoColor=white)](https://beta.ruff.rs/docs/)
-[![MyPy](https://img.shields.io/badge/MyPy-1A1A1A?style=for-the-badge&logo=python&logoColor=white)](http://mypy-lang.org/)
-[![Pre-commit](https://img.shields.io/badge/Pre--commit-FAB040?style=for-the-badge&logo=pre-commit&logoColor=black)](https://pre-commit.com/)
-[![Natasha](https://img.shields.io/badge/Natasha-4B0082?style=for-the-badge&logo=python&logoColor=white)](https://natasha.github.io/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/langgraph)
+  <code>🐍 Python</code> &nbsp;
+  <code>⚡ FastAPI</code> &nbsp;
+  <code>🎸 Django</code> &nbsp;
+  <code>🐘 PostgreSQL</code> &nbsp;
+  <code>📦 Redis</code> &nbsp;
+  <code>🔍 Elasticsearch</code> &nbsp;
+  <code>⚛️ React</code> &nbsp;
+  <code>⚡ Vite</code> &nbsp;
+  <code>📊 React Admin</code> &nbsp;
+  <code>🐳 Docker</code> &nbsp;
+  <code>🔧 GitHub Actions</code> &nbsp;
+  <code>🦀 Ruff</code> &nbsp;
+  <code>📝 MyPy</code> &nbsp;
+  <code>🔒 Pre-commit</code> &nbsp;
+  <code>🧠 Natasha</code> &nbsp;
+  <code>🔄 LangGraph</code>
 </p>
 
 
@@ -127,15 +129,50 @@ just up
 - Загружаются демонстрационные данные (тарифы, перевозчики)
 - Создается суперпользователь (admin/admin)
 
-Доступные сервисы:
-Сервис	URL	Назначение
-🌐 Frontend	http://localhost:5173	Чат-интерфейс пользователя
-🚀 FastAPI Docs	http://localhost:8000/docs	Документация API агента
-🐍 Django Admin	http://localhost:8001/admin	Панель администратора
-⚛️ React Admin	http://localhost:3001	Админ-панель логистики
-📊 Redis Commander	http://localhost:8081	Управление Redis
-📝 Swagger	http://localhost:8000/docs	OpenAPI документация
-🔍 Elasticsearch  http://localhost:9200 Поисковый движок
+### 🌐 Доступные сервисы
+
+<table>
+  <tr>
+    <th>Сервис</th>
+    <th>URL</th>
+    <th>Назначение</th>
+  </tr>
+  <tr>
+    <td>🌐 Frontend</td>
+    <td>http://localhost:5173</td>
+    <td>Чат-интерфейс пользователя</td>
+  </tr>
+  <tr>
+    <td>🚀 FastAPI Docs</td>
+    <td>http://localhost:8000/docs</td>
+    <td>Документация API агента</td>
+  </tr>
+  <tr>
+    <td>🐍 Django Admin</td>
+    <td>http://localhost:8001/admin</td>
+    <td>Панель администратора</td>
+  </tr>
+  <tr>
+    <td>⚛️ React Admin</td>
+    <td>http://localhost:3001</td>
+    <td>Админ-панель логистики</td>
+  </tr>
+  <tr>
+    <td>📊 Redis Commander</td>
+    <td>http://localhost:8081</td>
+    <td>Управление Redis</td>
+  </tr>
+  <tr>
+    <td>📝 Swagger</td>
+    <td>http://localhost:8000/docs</td>
+    <td>OpenAPI документация</td>
+  </tr>
+  <tr>
+    <td>🔍 Elasticsearch</td>
+    <td>http://localhost:9200</td>
+    <td>Поисковый движок</td>
+  </tr>
+</table>
 
 👤 Доступ по умолчанию
 Логин: admin
