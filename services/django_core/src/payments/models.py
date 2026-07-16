@@ -4,33 +4,26 @@ from django.db import models
 
 """Модель можно расширить потом, для юр лиц пост оплата и т.д."""
 
+
 class PaymentMethod(models.TextChoices):
-    PREPAID = 'prepaid', 'Предоплата'
-    POSTPAID = 'postpaid', 'Постоплата'
+    PREPAID = "prepaid", "Предоплата"
+    POSTPAID = "postpaid", "Постоплата"
 
 
 class Payment(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'pending', 'Ожидает оплаты'
-        PAID = 'paid', 'Оплачен'
-        FAILED = 'failed', 'Ошибка'
-        REFUNDED = 'refunded', 'Возврат'
+        PENDING = "pending", "Ожидает оплаты"
+        PAID = "paid", "Оплачен"
+        FAILED = "failed", "Ошибка"
+        REFUNDED = "refunded", "Возврат"
 
-    order = models.OneToOneField(
-        'orders.Order',
-        on_delete=models.PROTECT,
-        related_name='payment'
-    )
+    order = models.OneToOneField("orders.Order", on_delete=models.PROTECT, related_name="payment")
     method = models.CharField(
         max_length=20,
         choices=PaymentMethod.choices,
-        default=PaymentMethod.PREPAID # по умолчанию предоплата
+        default=PaymentMethod.PREPAID,  # по умолчанию предоплата
     )
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
-    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

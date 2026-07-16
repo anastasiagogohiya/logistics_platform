@@ -41,24 +41,25 @@ services:
 
   # Фронтэнд React+Vite
   frontend:
-    image: node:22-alpine  # или node:22-bookworm-slim
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
     container_name: logistics_frontend
-    command: sh -c "npm install && npx vite --host"
     ports:
       - "5173:5173"
-    #  - "24678:24678"
     volumes:
       - ./services/frontend:/app
       - frontend_nodemodules:/app/node_modules
     environment:
-      CHOKIDAR_USEPOLLING: "true"
-      VITE_API_URL: ""
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:8000
+      - NODE_ENV=development
     working_dir: /app
     networks:
       - logistics_network
-    depends_on:
-      - fastapi
     restart: unless-stopped
+
+
 
   # ==========================================
   # REACT ADMIN (административная панель)
@@ -87,8 +88,7 @@ services:
   # REDIS CACHE (для кэширования)
   # ==========================================
   redis-cache:
-    build:
-      context: ./infra/redis/cache
+    image: redis:7-alpine  # Вместо build
     container_name: logistics_redis_cache
     ports:
       - "6378:6379"
@@ -126,15 +126,20 @@ services:
 
   # Для просмотра данных хранимых Редисом storage + cache
   redis-commander:
-    image: rediscommander/redis-commander:latest
+    image: rediscommander/redis-commander:redis-commander-210 # легковесная
     container_name: logistics_redis_commander
     environment:
       - REDIS_HOSTS=cache:redis-cache:6379,storage:redis-storage:6379
+      - NODE_ENV=production  # для оптимизации
     ports:
       - "8081:8081"
     networks:
       - logistics_network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M  # Ограничение памяти
 
   # Сервис Fastapi агент (внешний api)
   fastapi:
@@ -146,13 +151,16 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./services/fastapi_agent:/app
+      - ./services/fastapi_agent/src:/app/src
       - ./infra/logging:/app/infra/logging
     environment:
       - DJANGO_API_URL=http://django:8001  # URL для обращения к сервису Django
       - DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}"
       - REDIS_CACHE_URL=redis://redis-cache:6379/0
       - REDIS_STORAGE_URL=redis://redis-storage:6379/0
+      - PORT=8000
+      - SERVICE=fastapi
+      - PYTHONPATH=/app:/app/src  # для нахождения правильного пути
     env_file:
       - .env
     depends_on:
@@ -169,12 +177,14 @@ services:
       context: .
       dockerfile: services/django_core/Dockerfile
     container_name: logistics_django
-    command: ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8001"] # автоматический перезапуск приложения по умолчанию
+    # команда в entrypoint
+    #command: ["poetry", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8001"] # автоматический перезапуск приложения по умолчанию
     ports:
       - "8001:8001"
     volumes:
-      - ./services/django_core/src:/app/src
+#      - ./services/django_core/src:/app/src
       - ./infra/logging:/app/infra/logging
+      - ./entrypoint.sh:/entrypoint.sh
     entrypoint: ["/entrypoint.sh"]
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -187,6 +197,7 @@ services:
       ELASTICSEARCH_HOST: elasticsearch
       ELASTICSEARCH_PORT: 9200
       REDIS_STORAGE_URL: redis://redis-storage:6379/0
+      PYTHONPATH: /app/src  # для нахождения правильного пути
 
     env_file:
       - .env
@@ -205,11 +216,11 @@ services:
 # Томы и сети
 volumes:
   postgres_data:
-  frontend_nodemodules:
   elasticsearch_data:
   redis_cache_data:
   redis_storage_data:
   react_admin_nodemodules:
+  frontend_nodemodules:
 
 networks: # виртуальная сеть между всеми контами
   logistics_network:

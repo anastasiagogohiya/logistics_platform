@@ -2,6 +2,7 @@
 import uuid
 from datetime import datetime
 
+
 class PaymentGateway:
     @staticmethod
     def create_payment(amount: float, currency: str = "RUB") -> dict:

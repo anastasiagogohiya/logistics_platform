@@ -1,18 +1,16 @@
-[project]
+[tool.poetry]
 name = "infra-logging"
 version = "0.1.0"
-description = "Общая библиотека логирования"
-authors = [
-    {name = "Anastasiya Gogokhiya", email = "gogiau@bk.ru"}
-]
-requires-python = ">=3.10"
-dependencies = [
-    "python-json-logger>=2.0.0",
-    "django>=4.0,<7.0",  # ← Изменено: теперь поддерживает до 7.0
+description = "Общая библиотека логирования для логистической платформы"
+authors = ["Anastasiya Gogokhiya <gogiau@bk.ru>"]
+packages = [
+    { include = "infra_logging", from = "src" }
 ]
 
-[tool.poetry]
-packages = [{include = "infra_logging", from = "src"}]
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+python-json-logger = ">=2.0.0"
+django = ">=4.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

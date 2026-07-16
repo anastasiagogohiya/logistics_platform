@@ -1,13 +1,16 @@
-from .config import configure_logging
-from .middleware import RequestIdMiddleware
-
-try:
-    from .middleware import FastAPIRequestIdMiddleware
-except ImportError:
-    FastAPIRequestIdMiddleware = None
+# infra/logging/src/infra_logging/__init__.py
+from .config import CustomJsonFormatter, ServiceFilter, configure_logging
+from .middleware import (
+    FastAPIRequestIdMiddleware,
+    LoggingMiddleware,
+    RequestIdMiddleware,
+)
 
 __all__ = [
-    "configure_logging",
     "RequestIdMiddleware",
+    "LoggingMiddleware",
     "FastAPIRequestIdMiddleware",
+    "configure_logging",
+    "ServiceFilter",
+    "CustomJsonFormatter",
 ]

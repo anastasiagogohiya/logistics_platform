@@ -1,0 +1,79 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      
+      - name: Install FastAPI deps
+        run: |
+          cd services/fastapi_agent
+          poetry install --no-interaction --no-root
+      
+      - name: Install Django deps
+        run: |
+          cd services/django_core
+          poetry install --no-interaction --no-root
+      
+      - name: Ruff check FastAPI
+        run: |
+          cd services/fastapi_agent
+          poetry run ruff check src/
+      
+      - name: Ruff check Django
+        run: |
+          cd services/django_core
+          poetry run ruff check src/
+      
+      - name: Ruff format FastAPI
+        run: |
+          cd services/fastapi_agent
+          poetry run ruff format src/ --check
+      
+      - name: Ruff format Django
+        run: |
+          cd services/django_core
+          poetry run ruff format src/ --check
+
+  build:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker images
+        run: |
+          docker compose build
+      
+      - name: Start services
+        run: |
+          docker compose up -d
+      
+      - name: Wait for services
+        run: |
+          sleep 30
+      
+      - name: Check health
+        run: |
+          curl -f http://localhost:8000/docs || exit 1
+          curl -f http://localhost:8001/admin/ || exit 1
+      
+      - name: Stop services
+        run: |
+          docker compose down

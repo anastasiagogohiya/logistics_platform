@@ -1,18 +1,20 @@
 # src/agents/order_agent.py
-from langgraph.graph import StateGraph, END
+import logging
+
 from langgraph.checkpoint.redis.aio import AsyncRedisSaver
+from langgraph.graph import END, StateGraph
+
 from .state import DialogState
 from .tools import (
-    extract_entities_tool,
-    validate_required_fields,
-    search_tariffs_tool,
-    select_offer_tool,
     confirm_order_tool,
     create_order_tool,
-    process_payment_tool,
+    extract_entities_tool,
     generate_response,
+    process_payment_tool,
+    search_tariffs_tool,
+    select_offer_tool,
+    validate_required_fields,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +29,14 @@ def build_order_agent(checkpointer: AsyncRedisSaver):
     workflow.add_node("select_offer", select_offer_tool)
     workflow.add_node("confirm_order", confirm_order_tool)
     workflow.add_node("create_order", create_order_tool)
-    workflow.add_node("process_payment", process_payment_tool)   # <-- добавить
+    workflow.add_node("process_payment", process_payment_tool)  # <-- добавить
     workflow.add_node("generate_response", generate_response)
 
     # Начальный роутер
     def initial_router(state: DialogState) -> str:
-        logger.info(f"🔀 initial_router: step={state.step}, current_message={state.current_message}")
+        logger.info(
+            f"🔀 initial_router: step={state.step}, current_message={state.current_message}"
+        )
         step = state.step
 
         if step == "payment_pending":

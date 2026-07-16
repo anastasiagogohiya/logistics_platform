@@ -1,10 +1,11 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from . import views
 
 router = DefaultRouter()
-router.register('carriers', views.CarrierViewSet, basename='carrier')
+router.register("carriers", views.CarrierViewSet, basename="carrier")
 
 urlpatterns = [
-    path('', include(router.urls)),   # /api/carriers/ — список, /api/carriers/{id}/ — детали
+    path("", include(router.urls)),  # /api/carriers/ — список, /api/carriers/{id}/ — детали
 ]

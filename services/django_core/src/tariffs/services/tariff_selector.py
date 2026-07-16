@@ -19,10 +19,9 @@ class TariffSelector:
     def __init__(self):
         self.es_service = ElasticsearchService()
 
-    def find_available_tariff(self, ship_from, ship_to,
-                         cargo_type, weight_kg, delivery_type,
-                         is_hazardous=False):
-
+    def find_available_tariff(
+        self, ship_from, ship_to, cargo_type, weight_kg, delivery_type, is_hazardous=False
+    ):
         # Шаг 1: Поиск в ES (только ID)
         tariff_ids = self.es_service.search(
             ship_from=ship_from,
@@ -30,21 +29,18 @@ class TariffSelector:
             cargo_type=cargo_type,
             weight_kg=weight_kg,
             delivery_type=delivery_type,
-            is_hazardous=is_hazardous
+            is_hazardous=is_hazardous,
         )
 
         # Шаг 2: Получение из PG
-        tariffs = Tariff.objects.filter(
-            id__in=tariff_ids,
-            is_active=True
-        ).select_related('carrier')
+        tariffs = Tariff.objects.filter(id__in=tariff_ids, is_active=True).select_related("carrier")
 
         # Шаг 3: Бизнес-логика
         tariffs = self._apply_carrier_rating_filter(tariffs)
         tariffs = self._apply_discounts(tariffs, weight_kg)
 
         # Шаг 4: Сортировка
-        return tariffs.order_by('price', '-carrier__rating')
+        return tariffs.order_by("price", "-carrier__rating")
 
     def _apply_carrier_rating_filter(self, tariffs):
         """Фильтр по рейтингу перевозчика исключаем перевозчиков с рейтингом меньше 3"""

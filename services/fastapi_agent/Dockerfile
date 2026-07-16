@@ -1,32 +1,40 @@
-FROM python:3.12.0-slim
-
-# Устанавливаем Poetry
-RUN pip install poetry
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Копируем файлы зависимостей (пути от корня проекта)
-COPY services/fastapi_agent/pyproject.toml services/fastapi_agent/poetry.lock* ./
+# Устанавливаем netcat для проверки подключения к БД
+RUN apt-get update && \
+    apt-get install -y netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/*
 
-# Копируем БИБЛИОТЕКУ в ту же папку, где лежит pyproject.toml
-COPY infra/logging ./infra/logging
 
-# КОСТЫЛЬ: устанавливаем библиотеку через pip (Poetry не справился)
-RUN pip install -e ./infra/logging
+RUN pip install poetry==1.8.5
+ENV POETRY_VIRTUALENVS_CREATE=false
 
-# Устанавливаем зависимости
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root
 
-# Копируем исходный код
+# Отладочный вывод: проверяем, что файлы существуют
+RUN echo "=== Checking files ===" && \
+    ls -la /app/services/fastapi_agent/pyproject.toml 2>&1 || echo "File not found in /app/services/fastapi_agent/" && \
+    ls -la services/fastapi_agent/pyproject.toml 2>&1 || echo "File not found in services/fastapi_agent/"
+
+
+# Копируем pyproject.toml для fastapi (без poetry.lock)
+COPY services/fastapi_agent/pyproject.toml ./
+COPY infra/logging/pyproject.toml ./infra/logging/
+COPY infra/logging/src ./infra/logging/src/
+
+
+# Устанавливаем зависимости (Poetry сам создаст lock файл)
+RUN poetry install --no-interaction --no-ansi --no-root
+
+# Копируем код
 COPY services/fastapi_agent/src/ ./src/
 
+# Копируем entrypoint и даем права на выполнение
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Устанавливаем PYTHONPATH
-ENV PYTHONPATH=/app/src
-
-# Открываем порт
+ENV PYTHONPATH=/app:/app/src
 EXPOSE 8000
-
-# Запускаем с --reload для разработки
-CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "port", "8000", "--reload"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

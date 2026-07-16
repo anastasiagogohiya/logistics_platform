@@ -1,7 +1,7 @@
 from fastapi import Request
-from typing import Optional
 
-def extract_token(request: Request) -> Optional[str]:
+
+def extract_token(request: Request) -> str | None:
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         return None

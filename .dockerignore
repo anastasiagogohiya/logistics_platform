@@ -1,0 +1,98 @@
+# ====================================================
+# 1. Глобальные игнорируемые паттерны (Python & Tools)
+# ====================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdvar/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Frontend build artifacts (НО НЕ node_modules!)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+dist/
+build/
+
+# Git
+.git/
+.gitignore
+
+# Infra data (логи БД, кэши) - ИСКЛЮЧАЕМ ТОЛЬКО ДАННЫЕ
+infra/redis/*/data/
+infra/redis/*/dump.rdb
+
+# ==========================================
+# 2. ИСКЛЮЧАЕМ node_modules ТОЛЬКО В КОРНЕ
+# ==========================================
+/node_modules/
+
+# ==========================================
+# 3. НО РАЗРЕШАЕМ node_modules ВНУТРИ СЕРВИСОВ
+# ==========================================
+!services/frontend/node_modules/
+!services/react-admin/node_modules/
+
+# ==========================================
+# 4. Разрешаем кодовую базу сервисов (WHITELIST)
+# ==========================================
+!pyproject.toml
+!entrypoint.sh
+
+# Сервисы
+!services/django_core/**
+!services/fastapi_agent/**
+!services/frontend/**
+!services/react-admin/**
+
+# Общая инфраструктура (кроме данных Redis из п.1)
+!infra/logging/**
+!infra/redis/cache/**
+!infra/redis/storage/**
+
+# ==========================================
+# 5. Исключаем лишнее внутри сервисов
+# ==========================================
+
+# Django: Исключаем тяжелую СУБД и мусорные миграции
+services/django_core/src/db.sqlite3
+services/django_core/src/*/migrations/**/*.pyc
+services/django_core/src/*/migrations/000*_*.py
+!services/django_core/src/*/migrations/__init__.py
+
+# Elasticsearch logs (если пробрасываются volume'ом)
+*.log

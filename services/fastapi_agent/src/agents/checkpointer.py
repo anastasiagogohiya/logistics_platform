@@ -1,8 +1,10 @@
 """Хранение диалога"""
-import os
-from langgraph.checkpoint.redis.aio import AsyncRedisSaver
-from langgraph.checkpoint.memory import MemorySaver
+
 import logging
+import os
+
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 
 logger = logging.getLogger(__name__)
 

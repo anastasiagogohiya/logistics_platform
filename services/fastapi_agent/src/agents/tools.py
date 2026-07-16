@@ -1,12 +1,14 @@
 # src/agents/tools.py
-import re
-import os
 import logging
-import httpx
-from src.services.ner_parser import extract_entities
-from src.services.django_client import DjangoAPIClient
-from src.agents.state import DialogState
+import os
+import re
 from datetime import timedelta
+
+import httpx
+
+from src.agents.state import DialogState
+from src.services.django_client import DjangoAPIClient
+from src.services.ner_parser import extract_entities
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,7 @@ django_client = DjangoAPIClient(DJANGO_API_URL)
 
 
 # ==================== Базовые узлы ====================
+
 
 async def extract_entities_tool(state: DialogState) -> dict:
     """Извлекает сущности из текущего сообщения."""
@@ -25,8 +28,14 @@ async def extract_entities_tool(state: DialogState) -> dict:
     parsed = extract_entities(text)
     updates = {}
     for key in [
-        "ship_from", "ship_to", "cargo_type", "delivery_type",
-        "weight_kg", "quantity", "is_hazardous", "shipment_date"
+        "ship_from",
+        "ship_to",
+        "cargo_type",
+        "delivery_type",
+        "weight_kg",
+        "quantity",
+        "is_hazardous",
+        "shipment_date",
     ]:
         val = parsed.get(key)
         if val not in (None, "", "other"):
@@ -66,10 +75,7 @@ async def search_tariffs_tool(state: DialogState) -> dict:
         data = await django_client.search_tariffs(params, auth_token=state.auth_token)
     except httpx.HTTPStatusError as e:
         logger.error(f"Ошибка поиска тарифов: {e}")
-        return {
-            "step": "error",
-            "error_message": "Сервис временно недоступен. Попробуйте позже."
-        }
+        return {"step": "error", "error_message": "Сервис временно недоступен. Попробуйте позже."}
 
     offers = data.get("results", [])
     if offers:
@@ -107,27 +113,81 @@ async def select_offer_tool(state: DialogState) -> dict:
 async def confirm_order_tool(state: DialogState) -> dict:
     """Обрабатывает ответ пользователя на подтверждение."""
     msg = state.current_message
-    if not msg:
+    if not msg or not msg.strip():
         return {
             "step": "confirming",
             "response_message": "Пожалуйста, ответьте 'да' или 'нет'.",
         }
 
-    lower = msg.lower().strip()
-    if lower in ("да", "yes", "подтверждаю", "ок", "ага", "конечно"):
+    normalized_text = "".join(msg.lower().split())
+
+    # 2. Словарь соответствий (включая транслит и сокращения)
+    affirmative_keywords = [
+        "да",
+        "yes",
+        "подтверждаю",
+        "ок",
+        "ага",
+        "конечно",
+        "хорошо",
+        "оформляй",
+        "заказывай",
+        "готово",
+        "lf",
+        "yf",  # частый транслит-да из-за неправильной раскладки
+    ]
+
+    negative_keywords = [
+        "нет",
+        "no",
+        "не надо",
+        "отмена",
+        "не подтверждаю",
+        "стоп",
+        "пока",
+        "ненадо",
+        "yt",
+        "ytn",  # транслит-нет
+    ]
+
+    # 3. Проверяем наличие ключевых слов
+    is_affirmative = any(keyword == normalized_text for keyword in affirmative_keywords)
+    is_negative = any(keyword == normalized_text for keyword in negative_keywords)
+
+    # Также проверим, если пользователь написал просто букву "д" или "н"
+    single_char_map = {"д": True, "l": True, "n": False, "y": True}
+    if len(normalized_text) == 1 and normalized_text in single_char_map:
+        is_affirmative = single_char_map[normalized_text]
+        is_negative = not is_affirmative
+
+    # === ЛОГИКА ПЕРЕХОДОВ ===
+
+    if is_affirmative:
+        logger.info(f"✅ Заказ подтвержден пользователем: '{msg}'")
         return {"step": "creating"}
-    elif lower in ("нет", "no", "не надо", "отмена", "не подтверждаю"):
+
+    elif is_negative:
+        logger.info(f"❌ Заказ отменен пользователем: '{msg}'")
         return {
             "step": "init",
             "selected_offer": None,
             "offers": [],
-            "response_message": "Вы отказались от оформления заказа. Если захотите перевезти груз, просто напишите новый запрос.",
+            "response_message": (
+                "Вы отказались от оформления заказа. "
+                "Если захотите перевезти груз, просто напишите новый запрос."
+            ),
         }
+
     else:
+        logger.warning(f"⚠️ Неизвестный ввод при подтверждении: '{msg}'")
         return {
             "step": "confirming",
-            "response_message": "Не понял ответ. Скажите 'да' или 'нет'.",
+            "response_message": (
+                "🤔 Я не понял ответ. Напишите 'да', чтобы оформить заказ, "
+                "или 'нет', чтобы отменить его."
+            ),
         }
+
 
 async def create_order_tool(state: DialogState) -> dict:
     selected = state.selected_offer
@@ -136,8 +196,10 @@ async def create_order_tool(state: DialogState) -> dict:
 
     shipment_date = state.shipment_date
     expected_delivery_date = None
-    if shipment_date and selected.get('delivery_days'):
-        expected_delivery_date = (shipment_date + timedelta(days=selected['delivery_days'])).isoformat()
+    if shipment_date and selected.get("delivery_days"):
+        expected_delivery_date = (
+            shipment_date + timedelta(days=selected["delivery_days"])
+        ).isoformat()
 
     payload = {
         "option_number": selected.get("option_number"),
@@ -166,7 +228,9 @@ async def create_order_tool(state: DialogState) -> dict:
         "method": state.payment_method,
         "amount": selected["price"],
     }
-    payment_result = await django_client.create_payment(payment_payload, auth_token=state.auth_token)
+    payment_result = await django_client.create_payment(
+        payment_payload, auth_token=state.auth_token
+    )
 
     return {
         "step": "payment_pending",
@@ -186,17 +250,36 @@ async def process_payment_tool(state: DialogState) -> dict:
 
     try:
         await django_client.pay_payment(state.payment_id, auth_token=state.auth_token)
+
+        # После оплаты сбрасываем всё состояние
         return {
-            "step": "done",
+            "step": "init",  # Возвращаем в начальное состояние
             "payment_status": "paid",
-            "response_message": "✅ Оплата успешно проведена! Спасибо за заказ."
+            "response_message": (
+                "✅ Заказ успешно оформлен и оплачен! Спасибо!\n\n"
+                "📦 Для нового заказа просто напишите новый запрос."
+            ),
+            # Сбрасываем все поля
+            "offers": [],
+            "selected_offer": None,
+            "ship_from": None,
+            "ship_to": None,
+            "cargo_type": "other",
+            "weight_kg": None,
+            "shipment_date": None,
+            "delivery_type": "standard",
+            "quantity": 1,
+            "is_hazardous": False,
+            "order_number": None,
+            "payment_id": None,
+            "order_created": False,
         }
     except Exception as e:
+        logger.error(f"Ошибка оплаты: {e}")
         return {
             "step": "payment_pending",
-            "response_message": "Ошибка оплаты. Попробуйте ещё раз."
+            "response_message": "❌ Ошибка оплаты. Попробуйте ещё раз.",
         }
-
 
 
 async def generate_response(state: DialogState) -> dict:
@@ -208,7 +291,9 @@ async def generate_response(state: DialogState) -> dict:
         if offers:
             lines = []
             for i, o in enumerate(offers[:5], 1):
-                lines.append(f"{i}. {o['carrier_name']}: {o['price']} руб., {o['delivery_days']} дн.")
+                lines.append(
+                    f"{i}. {o['carrier_name']}: {o['price']} руб., {o['delivery_days']} дн."
+                )
             text = (
                 f"Найдено {len(offers)} вариантов:\n"
                 + "\n".join(lines)
@@ -224,9 +309,9 @@ async def generate_response(state: DialogState) -> dict:
         else:
             # Вычисляем ожидаемую дату доставки
             shipment_date = state.shipment_date
-            if shipment_date and selected.get('delivery_days'):
-                expected_date = shipment_date + timedelta(days=selected['delivery_days'])
-                expected_date_str = expected_date.strftime('%Y-%m-%d')
+            if shipment_date and selected.get("delivery_days"):
+                expected_date = shipment_date + timedelta(days=selected["delivery_days"])
+                expected_date_str = expected_date.strftime("%Y-%m-%d")
             else:
                 expected_date_str = "неизвестна"
 
@@ -248,18 +333,16 @@ async def generate_response(state: DialogState) -> dict:
     elif step == "creating":
         text = "Заказ создаётся..."
 
-
-
     elif step == "done":
         order_number = state.order_number or "неизвестен"
         text = f"✅ Заказ {order_number} оформлен и оплачен! Спасибо!"
 
     elif step == "payment_pending":
         text = (
-            f"✅ Заказ {state.order_number} создан.\n"
-            "💳 Для оплаты введите номер карты или напишите 'оплатить'."
+            f"📝 Данные заказа сохранены. Номер: {state.order_number}.\n\n"
+            "💰 Теперь необходимо произвести оплату.\n"
+            "💳 Напишите 'оплатить', чтобы перейти к платежной форме."
         )
-
 
     elif step == "cancelled":
         text = state.response_message or "Заказ отменён."

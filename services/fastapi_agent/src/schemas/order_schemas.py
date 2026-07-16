@@ -1,37 +1,41 @@
 """Схемы для валидации данных"""
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import List, Optional, Literal
-from datetime import date, datetime
+
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class OrderCreateRequest(BaseModel):
-    option_number: int = Field(..., description='номер выбранного тарифа', example=1)
+    option_number: int = Field(description="номер выбранного тарифа", examples=[1])
 
 
 class OrderCreateResponse(BaseModel):
-    id: Optional[int] = None  # если Django возвращает первичный ключ
-    order_number: str = Field(..., description="Уникальный номер заказа")
-    client: int = Field(..., description="ID клиента (пользователя)")
-    created_at: datetime = Field(..., description="Дата создания заказа")
-    updated_at: Optional[datetime] = Field(None, description="Дата последнего обновления")
+    id: int | None = None  # если Django возвращает первичный ключ
+    order_number: str = Field(description="Уникальный номер заказа")
+    client: int = Field(description="ID клиента (пользователя)")
+    created_at: datetime = Field(description="Дата создания заказа")
+    updated_at: datetime | None = Field(None, description="Дата последнего обновления")
 
-    cargo_type: str = Field(..., description="Тип груза (выбор из CargoChoice)")
-    weight_kg: float = Field(..., description="Вес в кг")
-    dimensions: Optional[str] = Field(None, description="Габариты (строка)")
-    quantity: int = Field(..., description="Количество мест")
-    is_hazardous: bool = Field(..., description="Опасный груз?")
+    cargo_type: str = Field(description="Тип груза (выбор из CargoChoice)")
+    weight_kg: float = Field(description="Вес в кг")
+    dimensions: str | None = Field(None, description="Габариты (строка)")
+    quantity: int = Field(description="Количество мест")
+    is_hazardous: bool = Field(description="Опасный груз?")
 
-    ship_from: str = Field(..., description="Адрес отправления")
-    ship_to: str = Field(..., description="Адрес назначения")
-    requested_delivery_date: datetime = Field(..., description="Желаемая дата доставки")
-    delivery_type: str = Field(..., description="Тип доставки (standard/express)")
+    ship_from: str = Field(description="Адрес отправления")
+    ship_to: str = Field(description="Адрес назначения")
+    requested_delivery_date: datetime = Field(description="Желаемая дата доставки")
+    delivery_type: str = Field(description="Тип доставки (standard/express)")
 
-    carrier: Optional[int] = Field(None, description="ID назначенного перевозчика (может быть null)")
-    tariff: Optional[int] = Field(None, description="ID выбранного тарифа (может быть null)")
-    price: Optional[float] = Field(None, description="Цена перевозки (может быть null)")
+    carrier: int | None = Field(None, description="ID назначенного перевозчика (может быть null)")
+    tariff: int | None = Field(None, description="ID выбранного тарифа (может быть null)")
+    price: float | None = Field(None, description="Цена перевозки (может быть null)")
 
-    order_status: str = Field(..., description="Текущий статус заказа")
-    expected_delivery_date: Optional[datetime] = Field(None, description="Ожидаемая дата доставки (рассчитанная)")
-    factual_delivery_date: Optional[datetime] = Field(None, description="Фактическая дата доставки")
+    order_status: str = Field(description="Текущий статус заказа")
+    expected_delivery_date: datetime | None = Field(
+        None, description="Ожидаемая дата доставки (рассчитанная)"
+    )
+    factual_delivery_date: datetime | None = Field(None, description="Фактическая дата доставки")
 
     class Config:
         # Позволяет использовать примеры из модели, если нужно
@@ -56,6 +60,6 @@ class OrderCreateResponse(BaseModel):
                 "price": 1500.00,
                 "order_status": "created",
                 "expected_delivery_date": "2026-07-11T12:00:00",
-                "factual_delivery_date": None
+                "factual_delivery_date": None,
             }
         }

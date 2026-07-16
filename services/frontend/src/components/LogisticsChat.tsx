@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './LogisticsChat.css';
 
 // ========== ТИПЫ ==========
 interface Message {
@@ -165,7 +166,7 @@ const LogisticsChat: React.FC = () => {
     setMessages([
       {
         id: '1',
-        text: '👋 Привет! Я твой логистический помощник!\n\nНапиши, что нужно перевезти, или просто начни диалог.\n\n📝 Пример: "Перевези диван из Москвы в Питер, вес 50 кг, завтра"',
+        text: '👋 Привет! Я твой логистический помощник!\n\nНапиши, что нужно перевезти, или просто начни диалог.\n📝 Пример: "Перевези диван из Москвы в Казань, вес 50 кг, 20.08.2026"',
         sender: 'ai',
         timestamp: Date.now(),
       },
@@ -287,8 +288,8 @@ const LogisticsChat: React.FC = () => {
   // ========== ЕСЛИ НЕ АВТОРИЗОВАН ==========
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md border border-white/50">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-chat-light">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md border border-white/50">
           <div className="text-center mb-8">
             <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-xl shadow-blue-500/50 mx-auto">
               <span className="text-4xl">🤖</span>
@@ -367,11 +368,11 @@ const LogisticsChat: React.FC = () => {
     );
   }
 
-  // ========== ОСНОВНОЙ ЧАТ (исправленная вёрстка) ==========
+  // ========== ОСНОВНОЙ ЧАТ (с фоновым изображением) ==========
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-chat-light">
       {/* Хедер — фиксирован сверху */}
-      <header className="bg-white shadow-md px-6 py-3 flex-shrink-0 border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md shadow-md px-6 py-3 flex-shrink-0 border-b border-gray-200/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow">
@@ -388,10 +389,12 @@ const LogisticsChat: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">👤 {user.username}</span>
+            <span className="text-sm font-medium text-gray-700 bg-white/50 px-3 py-1 rounded-full backdrop-blur-sm">
+              👤 {user.username}
+            </span>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-semibold shadow transition-colors"
+              className="px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full text-sm font-semibold shadow transition-colors backdrop-blur-sm"
             >
               Выйти
             </button>
@@ -401,7 +404,7 @@ const LogisticsChat: React.FC = () => {
 
       {/* Основная область — занимает всё оставшееся пространство */}
       <main className="flex-1 overflow-hidden flex justify-center p-2">
-        <div className="w-full h-full bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
+        <div className="w-full h-full bg-white/80 backdrop-blur-md rounded-2xl shadow-xl flex flex-col overflow-hidden">
           {/* Окно сообщений — прокрутка только здесь */}
           <div
             ref={chatContainerRef}
@@ -416,8 +419,8 @@ const LogisticsChat: React.FC = () => {
                 <div
                   className={`max-w-[75%] px-5 py-3 rounded-2xl text-sm leading-relaxed shadow ${
                     msg.sender === 'user'
-                      ? 'bg-blue-600 text-white rounded-br-none'
-                      : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                      ? 'bg-blue-600/90 backdrop-blur-sm text-white rounded-br-none'
+                      : 'bg-white/90 backdrop-blur-sm text-gray-800 rounded-bl-none'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -434,7 +437,7 @@ const LogisticsChat: React.FC = () => {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-200 px-5 py-3 rounded-2xl rounded-bl-none shadow">
+                <div className="bg-white/90 backdrop-blur-sm px-5 py-3 rounded-2xl rounded-bl-none shadow">
                   <div className="flex items-center gap-3">
                     <span className="text-xl animate-bounce">⚡</span>
                     <span className="text-gray-600">Обработка...</span>
@@ -458,7 +461,7 @@ const LogisticsChat: React.FC = () => {
                     key={offer.tariff_id}
                     onClick={() => handleChoice(offer.option_number)}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full shadow transition-all disabled:opacity-50 text-sm"
+                    className="px-4 py-2 bg-blue-500/90 hover:bg-blue-600 text-white font-medium rounded-full shadow transition-all disabled:opacity-50 text-sm backdrop-blur-sm"
                   >
                     {offer.option_number}. {offer.carrier_name} – {offer.price} руб.
                   </button>
@@ -471,14 +474,14 @@ const LogisticsChat: React.FC = () => {
                 <button
                   onClick={() => handleConfirmation('да')}
                   disabled={isLoading}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full shadow transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-green-500/90 hover:bg-green-600 text-white font-semibold rounded-full shadow transition-all disabled:opacity-50 backdrop-blur-sm"
                 >
                   ✅ Да
                 </button>
                 <button
                   onClick={() => handleConfirmation('нет')}
                   disabled={isLoading}
-                  className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full shadow transition-all disabled:opacity-50"
+                  className="px-6 py-2 bg-red-500/90 hover:bg-red-600 text-white font-semibold rounded-full shadow transition-all disabled:opacity-50 backdrop-blur-sm"
                 >
                   ❌ Нет
                 </button>
@@ -488,19 +491,19 @@ const LogisticsChat: React.FC = () => {
             <div className="flex gap-2 flex-wrap justify-center">
               <button
                 onClick={() => setInputValue('Перевези диван из Москвы в Казань, вес 50 кг, 20.07.2026')}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
+                className="text-xs bg-white/80 backdrop-blur-sm hover:bg-white text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
               >
                 📦 Пример 1
               </button>
               <button
-                onClick={() => setInputValue('Нужно перевезти холодильник из СПБ в Казань, 30 кг, 20.06.2024')}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
+                onClick={() => setInputValue('Нужно перевезти холодильник из Тбилиси в Москву, общий вес 100 кг, 01.09.2026, кол-во 2')}
+                className="text-xs bg-white/80 backdrop-blur-sm hover:bg-white text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
               >
                 📦 Пример 2
               </button>
               <button
                 onClick={() => setInputValue('Перевези из Москвы в Питер')}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
+                className="text-xs bg-white/80 backdrop-blur-sm hover:bg-white text-blue-700 px-3 py-1 rounded-full border border-blue-200 transition-all"
               >
                 📦 Пример 3 (неполный)
               </button>
@@ -508,7 +511,7 @@ const LogisticsChat: React.FC = () => {
           </div>
 
           {/* Поле ввода */}
-          <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-2xl">
+          <div className="border-t border-gray-200/50 p-4 bg-white/80 backdrop-blur-sm rounded-b-2xl">
             <div className="flex items-end gap-3">
               <div className="relative flex-grow">
                 <textarea
@@ -524,7 +527,7 @@ const LogisticsChat: React.FC = () => {
                       : 'Введите сообщение...'
                   }
                   disabled={isLoading}
-                  className="w-full p-3 pr-12 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none min-h-[44px] max-h-[150px] placeholder-gray-400 disabled:opacity-50 text-sm"
+                  className="w-full p-3 pr-12 rounded-xl bg-white/90 backdrop-blur-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none min-h-[44px] max-h-[150px] placeholder-gray-400 disabled:opacity-50 text-sm"
                   style={{ overflow: 'hidden' }}
                 />
                 <div className="absolute right-3 bottom-3 text-gray-400 text-[10px]">↵</div>
@@ -538,7 +541,7 @@ const LogisticsChat: React.FC = () => {
               </button>
             </div>
             <div className="mt-2 text-center">
-              <span className="inline-block text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+              <span className="inline-block text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full border border-gray-200">
                 {dialogState === 'awaiting_choice'
                   ? '🔢 Выберите номер'
                   : dialogState === 'awaiting_confirmation'
@@ -550,8 +553,8 @@ const LogisticsChat: React.FC = () => {
         </div>
       </main>
 
-      {/* Футер — необязательный, можно убрать или оставить */}
-      <footer className="bg-white border-t border-gray-200 py-1 px-3 flex-shrink-0 text-center text-xs text-gray-400">
+      {/* Футер */}
+      <footer className="bg-white/70 backdrop-blur-sm border-t border-gray-200/50 py-1 px-3 flex-shrink-0 text-center text-xs text-gray-400">
         <span>🤖 ФРОНТЕНД · {API_URL} · {user.username}</span>
       </footer>
     </div>

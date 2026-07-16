@@ -1,51 +1,77 @@
-import uuid
+# infra/logging/src/infra_logging/middleware.py
 import logging
+import time
+import uuid
+
+from django.utils.deprecation import MiddlewareMixin
+
+logger = logging.getLogger(__name__)
 
 
-# ===== ДЛЯ DJANGO (синхронный) =====
-class RequestIdMiddleware:
-    """Middleware для Django"""
+class RequestIdMiddleware(MiddlewareMixin):
+    """Middleware для добавления request_id к запросам"""
 
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        request_id = request.headers.get('X-Request-Id', str(uuid.uuid4()))
+    def process_request(self, request):
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.request_id = request_id
+        request.META["REQUEST_ID"] = request_id
 
-        logger = logging.getLogger()
-        old_factory = logger.getChild
-
-        def adapter_factory(name):
-            return logging.LoggerAdapter(logging.getLogger(name), {'request_id': request_id})
-
-        logger.getChild = adapter_factory
-
-        response = self.get_response(request)
-        response['X-Request-Id'] = request_id
+    def process_response(self, request, response):
+        if hasattr(request, "request_id"):
+            response["X-Request-ID"] = request.request_id
         return response
 
 
-# ===== ДЛЯ FASTAPI (асинхронный) =====
-# ✅ Импорт ТОЛЬКО когда нужен FastAPI
-try:
-    from starlette.middleware.base import BaseHTTPMiddleware
+class LoggingMiddleware:
+    """Middleware для логирования запросов"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.logger = logging.getLogger(__name__)
+
+    def __call__(self, request):
+        start_time = time.time()
+        request_id = getattr(request, "request_id", None)
+
+        # Логируем с request_id через extra
+        self.logger.info(
+            f"Incoming: {request.method} {request.path}",
+            extra={"request_id": request_id} if request_id else {},
+        )
+
+        response = self.get_response(request)
+
+        duration = time.time() - start_time
+        self.logger.info(
+            f"Completed: {request.method} {request.path} - {response.status_code} - {duration:.3f}s",
+            extra={"request_id": request_id} if request_id else {},
+        )
+
+        return response
 
 
-    class FastAPIRequestIdMiddleware(BaseHTTPMiddleware):
-        """Middleware для FastAPI"""
+class FastAPIRequestIdMiddleware:
+    """Middleware для FastAPI"""
 
-        async def dispatch(self, request, call_next):
-            request_id = request.headers.get('X-Request-Id', str(uuid.uuid4()))
-            request.state.request_id = request_id
+    def __init__(self, app):
+        self.app = app
+        self.logger = logging.getLogger(__name__)
 
-            logger = logging.getLogger()
-            logger = logging.LoggerAdapter(logger, {'request_id': request_id})
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-            response = await call_next(request)
-            response.headers['X-Request-Id'] = request_id
-            return response
+        request_id = str(uuid.uuid4())
+        scope["request_id"] = request_id
 
-except ImportError:
-    # Если starlette не установлен (Django проект), просто пропускаем
-    pass
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = dict(message.get("headers", []))
+                headers[b"x-request-id"] = request_id.encode()
+                message["headers"] = list(headers.items())
+            await send(message)
+
+        self.logger.info(f"FastAPI Request: {request_id}", extra={"request_id": request_id})
+
+        await self.app(scope, receive, send_wrapper)

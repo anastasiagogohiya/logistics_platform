@@ -1,14 +1,11 @@
 from django.urls import path
-from . import views
 
-from django.urls import path
 from . import views
 
 urlpatterns = [
     # REST-алиасы (сначала общие, потом детальные)
-    path("users/", views.UserListView.as_view(), name="user-list"),          # список
-    path("users/<int:id>/", views.UserIdView.as_view(), name="user-detail"), # детали
-
+    path("users/", views.UserListView.as_view(), name="user-list"),  # список
+    path("users/<int:id>/", views.UserIdView.as_view(), name="user-detail"),  # детали
     # Оригинальные маршруты для FastAPI
     path("users/register/", views.RegisterView.as_view(), name="register"),
     path("users/list/", views.UserListView.as_view(), name="users-list"),
