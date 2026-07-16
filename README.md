@@ -103,7 +103,7 @@ Docker Compose 5.0.2
 1. Клонируем репозиторий
 
 ```bash
-git clone 
+git clone https://github.com/anastasiagogohiya/logistics_platform.git
 cd logistics_platform
 
 ```
