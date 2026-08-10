@@ -1,0 +1,417 @@
+openapi: 3.0.0
+info:
+  title: Logistics API
+  version: 1.0.0
+  description: API для Logistics Platform — AI-ассистент для автоматизации логистических перевозок
+
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер разработки
+
+paths:
+  # ==================== АУТЕНТИФИКАЦИЯ ====================
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Регистрация пользователя
+      operationId: register_api_auth_register_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserRequest'
+      responses:
+        '200':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewUserResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /api/auth/token:
+    post:
+      tags:
+        - Authentication
+      summary: Получение JWT токена (Login)
+      operationId: login_api_auth_token_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Неверный логин или пароль
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  # ==================== ПОЛЬЗОВАТЕЛИ ====================
+  /api/users/list:
+    get:
+      tags:
+        - Users
+      summary: Получение списка всех пользователей
+      operationId: get_users_api_users_list_get
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '401':
+          description: Не авторизован
+
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Получение данных пользователя по ID
+      operationId: get_user_info_api_users__id__get
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Не авторизован
+        '404':
+          description: Пользователь не найден
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  # ==================== ЧАТ (AI-АГЕНТ) ====================
+  /api/chat/process:
+    post:
+      tags:
+        - Chat
+      summary: Обработка чата
+      operationId: process_chat_api_chat_process_post
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Ответ от AI-агента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Не авторизован
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+# ==================== SCHEMAS ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # -------- ЗАПРОСЫ --------
+    NewUserRequest:
+      type: object
+      required:
+        - username
+        - password
+        - first_name
+        - last_name
+        - phone
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: pipita
+        email:
+          type: string
+          nullable: true
+          description: Email
+          example: pipita@bk.ru
+        password:
+          type: string
+          description: Пароль
+          example: pipita123
+        first_name:
+          type: string
+          description: Имя
+          example: Pipita
+        last_name:
+          type: string
+          description: Фамилия
+          example: Ivanova
+        phone:
+          type: string
+          description: Телефон
+          example: "89157655555"
+        avatar:
+          type: string
+          nullable: true
+          description: Аватар
+          example: https://example.com/avatar.jpg
+      title: NewUserRequest
+      description: Пользователь предоставляет свои данные
+
+    TokenRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+        password:
+          type: string
+          description: Пароль
+      title: TokenRequest
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+        - session_id
+      properties:
+        message:
+          type: string
+          minLength: 1
+          description: Текст запроса пользователя
+          example: Нужно перевезти 500 кг оборудования из Москвы в Санкт-Петербург завтра
+        session_id:
+          type: string
+          description: Уникальный идентификатор сессии для хранения разговора
+          example: sess_123
+      title: ChatRequest
+
+    # -------- ОТВЕТЫ --------
+    TokenResponse:
+      type: object
+      required:
+        - access
+        - refresh
+      properties:
+        access:
+          type: string
+          description: JWT access токен
+          example: eyJhbGciOiJIUzI1NiIs...
+        refresh:
+          type: string
+          description: JWT refresh токен
+          example: eyJhbGciOiJIUzI1NiIs...
+      title: TokenResponse
+
+    NewUserResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/UserBase'
+      title: NewUserResponse
+      description: Результат создания нового пользователя
+
+    UserBase:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          type: integer
+          description: ID пользователя
+        username:
+          type: string
+          description: Имя пользователя
+        email:
+          type: string
+          nullable: true
+          description: Email
+        first_name:
+          type: string
+          nullable: true
+          description: Имя
+        last_name:
+          type: string
+          nullable: true
+          description: Фамилия
+        phone:
+          type: string
+          nullable: true
+          description: Телефон
+        avatar:
+          type: string
+          nullable: true
+          description: Аватар
+        is_staff:
+          type: boolean
+          nullable: true
+          description: Администратор
+      title: UserBase
+
+    UserListResponse:
+      type: object
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBase'
+      title: UserListResponse
+
+    UserResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/UserBase'
+      title: UserResponse
+
+    ChatResponse:
+      type: object
+      required:
+        - parsed
+        - offers
+        - message
+      properties:
+        parsed:
+          type: object
+          additionalProperties: true
+          description: Распарсенные данные
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TariffOption'
+          description: Список предложений тарифов
+        message:
+          type: string
+          description: Сообщение для пользователя
+        need_clarification:
+          type: boolean
+          default: false
+          description: Требуется ли уточнение
+      title: ChatResponse
+
+    TariffOption:
+      type: object
+      required:
+        - option_number
+        - tariff_id
+        - carrier_name
+        - price
+        - delivery_days
+      properties:
+        option_number:
+          type: integer
+          description: Номер для выбора
+          example: 1
+        tariff_id:
+          type: integer
+          description: ID для создания заказа
+          example: 123
+        carrier_name:
+          type: string
+          description: Перевозчик
+          example: ЭкоЛогистик
+        price:
+          type: number
+          description: Цена, ₽
+          example: 9000.0
+        delivery_days:
+          type: integer
+          description: Срок, дней
+          example: 3
+        is_express:
+          type: boolean
+          default: false
+          description: Экспресс-доставка
+      title: TariffOption
+      description: Компактный вариант тарифа для бота
+
+    # -------- ОШИБКИ --------
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+      title: HTTPValidationError
+
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      title: ValidationError
+
+security:
+  - BearerAuth: []

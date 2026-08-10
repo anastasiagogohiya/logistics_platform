@@ -1,0 +1,147 @@
+{
+  "info": {
+    "name": "Logistics Platform API",
+    "description": "API для автоматизации логистических перевозок с AI-ассистентом",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"user@example.com\",\n    \"password\": \"secure_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/token/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "token", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/token/refresh/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "token", "refresh", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"newuser@example.com\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"secure_password\",\n    \"password2\": \"secure_password\",\n    \"first_name\": \"Иван\",\n    \"last_name\": \"Иванов\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "register", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Chat",
+      "item": [
+        {
+          "name": "Process Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"session_id\": \"sess_123\",\n    \"text\": \"Нужно перевезти 500 кг оборудования из Москвы в Санкт-Петербург завтра\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/process",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "process"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Tariffs",
+      "item": [
+        {
+          "name": "Search Tariffs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"ship_from\": \"Москва\",\n    \"ship_to\": \"Санкт-Петербург\",\n    \"cargo_type\": \"equipment\",\n    \"weight_kg\": 500,\n    \"delivery,
