@@ -104,22 +104,22 @@
 
 ## 📚 Документация системного аналитика
 
-| 🧾 Артефакт | 📖 Описание | 📁 Где посмотреть |
-|-------------|-------------|-------------------|
-| **BRD** | Бизнес-требования: цели, стейкхолдеры, метрики, экономика | [`01_business_requirements.md`](./docs/requirements/01_business_requirements.md) |
+| 🧾 Артефакт | 📖 Описание                                                           | 📁 Где посмотреть |
+|-------------|-----------------------------------------------------------------------|-------------------|
+| **BRD** | Бизнес-требования: цели, стейкхолдеры, метрики, экономика             | [`01_business_requirements.md`](./docs/requirements/01_business_requirements.md) |
 | **User Stories** | Пользовательские сценарии для клиентов, перевозчиков, администраторов | [`02_user_stories.md`](./docs/requirements/02_user_stories.md) |
-| **SRS** | Системные требования: FR, AI, NFR, UI, BRULE, DATA, INT | [`03_system_requirements.md`](./docs/requirements/03_system_requirements.md) |
-| **Матрица трассировки** | Связь требований с тест-кейсами | [`04_traceability_matrix.md`](./docs/requirements/04_traceability_matrix.md) |
-| **Диаграммы** | BPMN AS-IS/TO-BE, UML (Use Case, Sequence, Component, State), ER | [📁 Посмотреть все](./docs/diagrams/) |
-| **RACI-матрица** | Распределение ответственности по ролям | [`raci.md`](./docs/processes/raci.md) |
-| **Глоссарий** | Единая терминология предметной области | [`glossary.md`](./docs/processes/glossary.md) |
-| **API контракт** | Описание API-эндпоинтов, форматов запросов и ответов | [`api_contract.md`](./docs/api/api_contract.md) |
-| **OpenAPI-спецификация** | Машиночитаемая спецификация API (YAML) | [`openapi.yaml`](./docs/api/openapi.yaml) |
-| **Postman Collection** | Коллекция запросов для тестирования API | [`postman_collection.json`](./docs/api/postman_collection.json) |
-| **Тест-сценарии (Gherkin)** | BDD-сценарии для автоматизации тестирования | [`test_scenarios.md`](./docs/tests/test_scenarios.md) |
-| **Release Notes** | Что нового и что исправлено в релизе | [`release_notes.md`](./docs/release/release_notes.md) |
-| **Runbook** | Инструкция для службы поддержки | [`runbook.md`](./docs/release/runbook.md) |
-| **Realization Report** | Отчет о достижении бизнес-результатов (KPI) | [`realization_report.md`](./docs/release/realization_report.md) |
+| **SRS** | Системные требования: FR, AI, NFR, UI, BRULE, DATA, INT               | [`03_system_requirements.md`](./docs/requirements/03_system_requirements.md) |
+| **Матрица трассировки** | Связь требований с тест-кейсами                                       | [`04_traceability_matrix.md`](./docs/requirements/04_traceability_matrix.md) |
+| **Диаграммы** | BPMN AS-IS/TO-BE, UML (Use Case, Sequence, Component, State), ER, C4   | [📁 Посмотреть все](./docs/diagrams/) |
+| **RACI-матрица** | Распределение ответственности по ролям                                | [`raci.md`](./docs/processes/raci.md) |
+| **Глоссарий** | Единая терминология предметной области                                | [`glossary.md`](./docs/processes/glossary.md) |
+| **API контракт** | Описание API-эндпоинтов, форматов запросов и ответов                  | [`api_contract.md`](./docs/api/api_contract.md) |
+| **OpenAPI-спецификация** | Машиночитаемая спецификация API (YAML)                                | [`openapi.yaml`](./docs/api/openapi.yaml) |
+| **Postman Collection** | Коллекция запросов для тестирования API                               | [`postman_collection.json`](./docs/api/postman_collection.json) |
+| **Тест-сценарии (Gherkin)** | BDD-сценарии для автоматизации тестирования                           | [`test_scenarios.md`](./docs/tests/test_scenarios.md) |
+| **Release Notes** | Что нового и что исправлено в релизе                                  | [`release_notes.md`](./docs/release/release_notes.md) |
+| **Runbook** | Инструкция для службы поддержки                                       | [`runbook.md`](./docs/release/runbook.md) |
+| **Realization Report** | Отчет о достижении бизнес-результатов (KPI)                           | [`realization_report.md`](./docs/release/realization_report.md) |
 
 
 ## ✨ Функционал
